@@ -7,13 +7,13 @@ resource "aws_lb" "nginx" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = aws_subnet.public_subnet[*].id
-  depends_on         = [aws_s3_bucket_policy.web_bucket]
+  subnets            = module.app.public_subnets
+  depends_on         = [module.web_app_s3]
 
   enable_deletion_protection = false
 
   access_logs {
-    bucket  = aws_s3_bucket.web_bucket.bucket
+    bucket  = module.web_app_s3.web_bucket.id
     prefix  = "alb-logs"
     enabled = true
   }
@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "nginx" {
   name     = "${local.naming_prefix}-nginx-alb-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.app.id
+  vpc_id   = module.app.vpc_id
 
   tags = local.common_tags
 }
